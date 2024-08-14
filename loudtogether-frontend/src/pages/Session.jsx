@@ -93,11 +93,6 @@ function Session() {
   const VITE_KEY = import.meta.env.VITE_PUSHER_KEY;
   const VITE_CLUSTER = import.meta.env.VITE_PUSHER_CLUSTER;
 
-  console.log("Environment Variables:");
-  console.log("SERVER_URL:", SERVER_URL);
-  console.log("PUSHER_KEY:", VITE_KEY);
-  console.log("PUSHER_CLUSTER:", VITE_CLUSTER);
-
   useEffect(() => {
     const fetchSessionData = async () => {
       try {
