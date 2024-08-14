@@ -1,0 +1,24 @@
+{
+  "name": "loudtogether",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "loudtogether-backend",
+    "loudtogether-frontend"
+  ],
+  "scripts": {
+    "install:all": "npm install && npm run install:loudtogether-backend && npm run install:loudtogether-frontend",
+    "install:loudtogether-backend": "cd loudtogether-backend && npm install",
+    "install:loudtogether-frontend": "cd loudtogether-frontend && npm install",
+    "dev": "concurrently \"npm run dev:loudtogether-backend\" \"npm run dev:loudtogether-frontend\"",
+    "dev:loudtogether-backend": "cd loudtogether-backend && npm run dev",
+    "dev:loudtogether-frontend": "cd loudtogether-frontend && npm run dev",
+    "build": "npm run build:loudtogether-backend && npm run build:loudtogether-frontend",
+    "build:loudtogether-backend": "cd loudtogether-backend && npm run build",
+    "build:loudtogether-frontend": "cd loudtogether-frontend && npm run build",
+    "start": "cd loudtogether-backend && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^6.2.0"
+  }
+}
