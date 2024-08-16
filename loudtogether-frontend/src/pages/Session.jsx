@@ -1,5 +1,5 @@
 // Session.jsx
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import PropTypes from "prop-types";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -30,6 +30,7 @@ const AdminView = ({
   handleTimeUpdate,
   handlePlayPause,
   isPlaying,
+  currentTime,
 }) => (
   <>
     <SessionInfo session={session} audioInfo={audioInfo} />
@@ -43,20 +44,28 @@ const AdminView = ({
       onTimeUpdate={handleTimeUpdate}
       onPlayPause={handlePlayPause}
       isPlaying={isPlaying}
+      currentTime={currentTime}
     />
   </>
 );
 
-AdminView.propTypes = {
+AdminView.PropTypes = {
   session: PropTypes.object.isRequired,
   audioInfo: PropTypes.object.isRequired,
   audioPlayerRef: PropTypes.object.isRequired,
   handleTimeUpdate: PropTypes.func.isRequired,
   handlePlayPause: PropTypes.func.isRequired,
   isPlaying: PropTypes.bool.isRequired,
+  currentTime: PropTypes.number.isRequired,
 };
 
-const ParticipantView = ({ session, audioInfo, audioPlayerRef, isPlaying }) => (
+const ParticipantView = ({
+  session,
+  audioInfo,
+  audioPlayerRef,
+  isPlaying,
+  currentTime,
+}) => (
   <>
     <SessionInfo session={session} audioInfo={audioInfo} />
     <div className="bg-[#17D9A3] text-white rounded-2xl p-4 mb-6">
@@ -66,9 +75,10 @@ const ParticipantView = ({ session, audioInfo, audioPlayerRef, isPlaying }) => (
       audioPlayerRef={audioPlayerRef}
       audioUrl={audioInfo.cloudinaryUrl}
       isAdmin={false}
-      onTimeUpdate={() => {}} // No-op function for participants
-      onPlayPause={() => {}} // No-op function for participants
+      onTimeUpdate={() => {}}
+      onPlayPause={() => {}}
       isPlaying={isPlaying}
+      currentTime={currentTime}
     />
     <div className="bg-gray-100 rounded-xl p-4 mt-4">
       <p className="text-center text-sm text-gray-600">
@@ -79,11 +89,12 @@ const ParticipantView = ({ session, audioInfo, audioPlayerRef, isPlaying }) => (
   </>
 );
 
-ParticipantView.propTypes = {
+ParticipantView.PropTypes = {
   session: PropTypes.object.isRequired,
   audioInfo: PropTypes.object.isRequired,
   audioPlayerRef: PropTypes.object.isRequired,
   isPlaying: PropTypes.bool.isRequired,
+  currentTime: PropTypes.number.isRequired,
 };
 
 function Session() {
@@ -94,10 +105,33 @@ function Session() {
   const [audioInfo, setAudioInfo] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
   const audioPlayerRef = useRef(null);
+  const lastSyncTime = useRef(0);
   const SERVER_URL = import.meta.env.VITE_SERVER_URL;
   const VITE_KEY = import.meta.env.VITE_PUSHER_KEY;
   const VITE_CLUSTER = import.meta.env.VITE_PUSHER_CLUSTER;
+
+  const syncAudioState = useCallback((time, playing) => {
+    if (audioPlayerRef.current) {
+      const currentTime = audioPlayerRef.current.currentTime;
+      const timeDiff = Math.abs(currentTime - time);
+
+      if (timeDiff > 1) {
+        // Only sync if difference is more than 1 second
+        audioPlayerRef.current.currentTime = time;
+      }
+
+      setCurrentTime(time);
+      setIsPlaying(playing);
+
+      if (playing && audioPlayerRef.current.paused) {
+        audioPlayerRef.current.play();
+      } else if (!playing && !audioPlayerRef.current.paused) {
+        audioPlayerRef.current.pause();
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const fetchSessionData = async () => {
@@ -123,21 +157,15 @@ function Session() {
   }, [sessionId, location.state, SERVER_URL]);
 
   useEffect(() => {
-    const pusher = new Pusher(VITE_KEY, {
-      cluster: VITE_CLUSTER,
-    });
-
+    const pusher = new Pusher(VITE_KEY, { cluster: VITE_CLUSTER });
     const channel = pusher.subscribe(`session-${sessionId}`);
 
     channel.bind("audio-sync", (data) => {
-      if (audioPlayerRef.current) {
-        audioPlayerRef.current.currentTime = data.currentTime;
-        setIsPlaying(data.isPlaying);
-        if (data.isPlaying) {
-          audioPlayerRef.current.play();
-        } else {
-          audioPlayerRef.current.pause();
-        }
+      const now = Date.now();
+      if (now - lastSyncTime.current > 1000) {
+        // Throttle sync events
+        syncAudioState(data.currentTime, data.isPlaying);
+        lastSyncTime.current = now;
       }
     });
 
@@ -148,10 +176,23 @@ function Session() {
       }));
     });
 
+    // Periodic sync check
+    const syncInterval = setInterval(() => {
+      if (!isAdmin) {
+        axios
+          .get(`${SERVER_URL}/api/sessions/${sessionId}/sync`)
+          .then((response) => {
+            syncAudioState(response.data.currentTime, response.data.isPlaying);
+          })
+          .catch((error) => console.error("Error fetching sync data:", error));
+      }
+    }, 5000); // Check every 5 seconds
+
     return () => {
       pusher.unsubscribe(`session-${sessionId}`);
+      clearInterval(syncInterval);
     };
-  }, [sessionId, VITE_KEY, VITE_CLUSTER]);
+  }, [sessionId, VITE_KEY, VITE_CLUSTER, syncAudioState, isAdmin, SERVER_URL]);
 
   useEffect(() => {
     const joinSession = async () => {
@@ -160,6 +201,13 @@ function Session() {
           await axios.post(`${SERVER_URL}/api/sessions/${sessionId}/join`, {
             participantName: location.state.participantName,
           });
+          const syncResponse = await axios.get(
+            `${SERVER_URL}/api/sessions/${sessionId}/sync`
+          );
+          syncAudioState(
+            syncResponse.data.currentTime,
+            syncResponse.data.isPlaying
+          );
         } catch (error) {
           console.error("Error joining session:", error);
         }
@@ -167,26 +215,38 @@ function Session() {
     };
 
     joinSession();
-  }, [sessionId, location.state, SERVER_URL]);
+  }, [sessionId, location.state, SERVER_URL, syncAudioState]);
 
-  const handleTimeUpdate = (currentTime) => {
-    if (isAdmin) {
-      axios.post(`${SERVER_URL}/api/sessions/${sessionId}/sync`, {
-        currentTime,
-        isPlaying,
-      });
-    }
-  };
+  const handleTimeUpdate = useCallback(
+    (time) => {
+      setCurrentTime(time);
+      if (isAdmin) {
+        const now = Date.now();
+        if (now - lastSyncTime.current > 1000) {
+          // Throttle sync requests
+          axios.post(`${SERVER_URL}/api/sessions/${sessionId}/sync`, {
+            currentTime: time,
+            isPlaying,
+          });
+          lastSyncTime.current = now;
+        }
+      }
+    },
+    [isAdmin, isPlaying, sessionId, SERVER_URL]
+  );
 
-  const handlePlayPause = (playing) => {
-    if (isAdmin) {
+  const handlePlayPause = useCallback(
+    (playing) => {
       setIsPlaying(playing);
-      axios.post(`${SERVER_URL}/api/sessions/${sessionId}/sync`, {
-        currentTime: audioPlayerRef.current.currentTime,
-        isPlaying: playing,
-      });
-    }
-  };
+      if (isAdmin) {
+        axios.post(`${SERVER_URL}/api/sessions/${sessionId}/sync`, {
+          currentTime: audioPlayerRef.current?.currentTime || 0,
+          isPlaying: playing,
+        });
+      }
+    },
+    [isAdmin, sessionId, SERVER_URL]
+  );
 
   if (!session || !audioInfo) {
     return <SplashScreen />;
@@ -213,6 +273,7 @@ function Session() {
             handleTimeUpdate={handleTimeUpdate}
             handlePlayPause={handlePlayPause}
             isPlaying={isPlaying}
+            currentTime={currentTime}
           />
         ) : (
           <ParticipantView
@@ -220,6 +281,7 @@ function Session() {
             audioInfo={audioInfo}
             audioPlayerRef={audioPlayerRef}
             isPlaying={isPlaying}
+            currentTime={currentTime}
           />
         )}
       </div>
