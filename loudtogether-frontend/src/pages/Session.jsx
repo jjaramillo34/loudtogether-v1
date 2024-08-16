@@ -56,16 +56,21 @@ AdminView.propTypes = {
   isPlaying: Proptypes.bool.isRequired,
 };
 
-const ParticipantView = ({ session, audioInfo, isPlaying }) => (
+const ParticipantView = ({ session, audioInfo, isPlaying, audioPlayerRef }) => (
   <>
     <SessionInfo session={session} audioInfo={audioInfo} />
     <div className="bg-[#17D9A3] text-white rounded-2xl p-4 mb-6">
       <p className="text-center font-semibold">Participant View</p>
     </div>
-    <div className="bg-gray-100 rounded-xl p-4 mb-6">
-      <p className="text-center text-lg font-semibold mb-2">
-        {isPlaying ? "Music is playing" : "Music is paused"}
-      </p>
+    <AudioControls
+      audioPlayerRef={audioPlayerRef}
+      audioUrl={audioInfo.cloudinaryUrl}
+      isAdmin={false}
+      onTimeUpdate={() => {}} // No-op function for participants
+      onPlayPause={() => {}} // No-op function for participants
+      isPlaying={isPlaying}
+    />
+    <div className="bg-gray-100 rounded-xl p-4 mt-4">
       <p className="text-center text-sm text-gray-600">
         The admin controls the playback. Enjoy the music!
       </p>
@@ -77,7 +82,9 @@ ParticipantView.propTypes = {
   session: Proptypes.object.isRequired,
   audioInfo: Proptypes.object.isRequired,
   isPlaying: Proptypes.bool.isRequired,
+  audioPlayerRef: Proptypes.object.isRequired,
 };
+
 export { AdminView, ParticipantView };
 
 function Session() {
@@ -172,8 +179,8 @@ function Session() {
   };
 
   const handlePlayPause = (playing) => {
-    setIsPlaying(playing);
     if (isAdmin) {
+      setIsPlaying(playing);
       axios.post(`${SERVER_URL}/api/sessions/${sessionId}/sync`, {
         isPlaying: playing,
       });
@@ -211,6 +218,7 @@ function Session() {
             session={session}
             audioInfo={audioInfo}
             isPlaying={isPlaying}
+            audioPlayerRef={audioPlayerRef}
           />
         )}
       </div>
