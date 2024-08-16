@@ -1,6 +1,6 @@
 // Session.jsx
 import { useEffect, useState, useRef } from "react";
-import Proptypes from "prop-types";
+import PropTypes from "prop-types";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Pusher from "pusher-js";
@@ -48,15 +48,15 @@ const AdminView = ({
 );
 
 AdminView.propTypes = {
-  session: Proptypes.object.isRequired,
-  audioInfo: Proptypes.object.isRequired,
-  audioPlayerRef: Proptypes.object.isRequired,
-  handleTimeUpdate: Proptypes.func.isRequired,
-  handlePlayPause: Proptypes.func.isRequired,
-  isPlaying: Proptypes.bool.isRequired,
+  session: PropTypes.object.isRequired,
+  audioInfo: PropTypes.object.isRequired,
+  audioPlayerRef: PropTypes.object.isRequired,
+  handleTimeUpdate: PropTypes.func.isRequired,
+  handlePlayPause: PropTypes.func.isRequired,
+  isPlaying: PropTypes.bool.isRequired,
 };
 
-const ParticipantView = ({ session, audioInfo, isPlaying, audioPlayerRef }) => (
+const ParticipantView = ({ session, audioInfo, audioPlayerRef, isPlaying }) => (
   <>
     <SessionInfo session={session} audioInfo={audioInfo} />
     <div className="bg-[#17D9A3] text-white rounded-2xl p-4 mb-6">
@@ -72,20 +72,19 @@ const ParticipantView = ({ session, audioInfo, isPlaying, audioPlayerRef }) => (
     />
     <div className="bg-gray-100 rounded-xl p-4 mt-4">
       <p className="text-center text-sm text-gray-600">
-        The admin controls the playback. Enjoy the music!
+        The admin controls the playback. You can listen along but not control
+        the audio.
       </p>
     </div>
   </>
 );
 
 ParticipantView.propTypes = {
-  session: Proptypes.object.isRequired,
-  audioInfo: Proptypes.object.isRequired,
-  isPlaying: Proptypes.bool.isRequired,
-  audioPlayerRef: Proptypes.object.isRequired,
+  session: PropTypes.object.isRequired,
+  audioInfo: PropTypes.object.isRequired,
+  audioPlayerRef: PropTypes.object.isRequired,
+  isPlaying: PropTypes.bool.isRequired,
 };
-
-export { AdminView, ParticipantView };
 
 function Session() {
   const { sessionId } = useParams();
@@ -121,7 +120,7 @@ function Session() {
     };
 
     fetchSessionData();
-  }, [sessionId, location.state]);
+  }, [sessionId, location.state, SERVER_URL]);
 
   useEffect(() => {
     const pusher = new Pusher(VITE_KEY, {
@@ -131,8 +130,8 @@ function Session() {
     const channel = pusher.subscribe(`session-${sessionId}`);
 
     channel.bind("audio-sync", (data) => {
-      if (!isAdmin && audioPlayerRef.current) {
-        audioPlayerRef.current.setCurrentTime(data.currentTime);
+      if (audioPlayerRef.current) {
+        audioPlayerRef.current.currentTime = data.currentTime;
         setIsPlaying(data.isPlaying);
         if (data.isPlaying) {
           audioPlayerRef.current.play();
@@ -152,7 +151,7 @@ function Session() {
     return () => {
       pusher.unsubscribe(`session-${sessionId}`);
     };
-  }, [sessionId, isAdmin]);
+  }, [sessionId, VITE_KEY, VITE_CLUSTER]);
 
   useEffect(() => {
     const joinSession = async () => {
@@ -168,12 +167,13 @@ function Session() {
     };
 
     joinSession();
-  }, [sessionId, location.state]);
+  }, [sessionId, location.state, SERVER_URL]);
 
   const handleTimeUpdate = (currentTime) => {
     if (isAdmin) {
       axios.post(`${SERVER_URL}/api/sessions/${sessionId}/sync`, {
         currentTime,
+        isPlaying,
       });
     }
   };
@@ -182,6 +182,7 @@ function Session() {
     if (isAdmin) {
       setIsPlaying(playing);
       axios.post(`${SERVER_URL}/api/sessions/${sessionId}/sync`, {
+        currentTime: audioPlayerRef.current.currentTime,
         isPlaying: playing,
       });
     }
@@ -217,15 +218,13 @@ function Session() {
           <ParticipantView
             session={session}
             audioInfo={audioInfo}
-            isPlaying={isPlaying}
             audioPlayerRef={audioPlayerRef}
+            isPlaying={isPlaying}
           />
         )}
       </div>
 
       <ParticipantsModal participants={session.participants} />
-
-      {/* Home Indicator */}
       <HomeIndicator />
     </div>
   );
