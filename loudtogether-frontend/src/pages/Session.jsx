@@ -65,6 +65,7 @@ const ParticipantView = ({
   audioPlayerRef,
   isPlaying,
   currentTime,
+  onTimeUpdate,
 }) => (
   <>
     <SessionInfo session={session} audioInfo={audioInfo} />
@@ -75,7 +76,7 @@ const ParticipantView = ({
       audioPlayerRef={audioPlayerRef}
       audioUrl={audioInfo.cloudinaryUrl}
       isAdmin={false}
-      onTimeUpdate={() => {}}
+      onTimeUpdate={onTimeUpdate}
       onPlayPause={() => {}}
       isPlaying={isPlaying}
       currentTime={currentTime}
@@ -95,6 +96,7 @@ ParticipantView.PropTypes = {
   audioPlayerRef: PropTypes.object.isRequired,
   isPlaying: PropTypes.bool.isRequired,
   currentTime: PropTypes.number.isRequired,
+  onTimeUpdate: PropTypes.func.isRequired,
 };
 
 function Session() {
@@ -282,6 +284,7 @@ function Session() {
             audioPlayerRef={audioPlayerRef}
             isPlaying={isPlaying}
             currentTime={currentTime}
+            onTimeUpdate={handleTimeUpdate}
           />
         )}
       </div>
