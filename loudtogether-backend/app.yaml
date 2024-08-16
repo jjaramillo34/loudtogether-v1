@@ -33,3 +33,5 @@ services:
         type: SECRET
       - key: CLOUDINARY_API_SECRET
         type: SECRET
+      - key: YOUTUBE_API_KEY
+        type: SECRET
