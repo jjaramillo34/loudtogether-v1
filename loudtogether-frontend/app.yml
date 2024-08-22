@@ -1,14 +1,13 @@
 name: loudtogether-frontend
-services:
+static_sites:
   - name: web
     git:
       branch: main
       repo_clone_url: git@github.com:jjaramillo34/loudtogether-v1.git
     source_dir: loudtogether-frontend
-    build_command: cd loudtogether-frontend && npm install
-    run_command: cd loudtogether-frontend && npm start
+    build_command: npm install && npm run build
+    output_dir: dist
     environment_slug: node-js
-
     envs:
       - key: NODE_ENV
         value: production
