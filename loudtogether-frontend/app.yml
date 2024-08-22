@@ -1,0 +1,20 @@
+name: loudtogether-frontend
+services:
+  - name: web
+    git:
+      branch: main
+      repo_clone_url: git@github.com:jjaramillo34/loudtogether-v1.git
+    source_dir: loudtogether-frontend
+    build_command: cd loudtogether-frontend && npm install
+    run_command: cd loudtogether-frontend && npm start
+    environment_slug: node-js
+
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: VITE_PUSHER_KEY
+        type: SECRET
+      - key: VITE_PUSHER_CLUSTER
+        type: SECRET
+      - key: VITE_SERVER_URL
+        type: SECRET
