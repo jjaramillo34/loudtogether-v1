@@ -1,11 +1,11 @@
 name: loudtogether-frontend
 static_sites:
-  - name: web
+  - name: loudtogether-frontend
+    environment_slug: node-js
     git:
       branch: main
       repo_clone_url: git@github.com:jjaramillo34/loudtogether-v1.git
     source_dir: loudtogether-frontend
-    environment_slug: node-js
     build_command: npm ci && npm run build
     output_dir: dist
     index_document: index.html
@@ -20,6 +20,3 @@ static_sites:
         type: SECRET
       - key: VITE_SERVER_URL
         type: SECRET
-    routes:
-      - path: /
-    http_port: 8080
