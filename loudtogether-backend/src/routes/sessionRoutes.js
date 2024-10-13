@@ -14,6 +14,7 @@ router.get("/audio-info", sessionController.getAudioInfo);
 router.post("/", sessionController.createSession);
 router.get("/:sessionId", sessionController.getSession);
 router.post("/:sessionId/join", sessionController.joinSession);
+router.get("/:sessionId/sync", sessionController.getSyncStatus); // Add this line
 router.post("/:sessionId/sync", sessionController.syncAudio);
 // Add this to your routes file (e.g., sessionRoutes.js)
 router.post("/:sessionId/leave", sessionController.leaveSession);

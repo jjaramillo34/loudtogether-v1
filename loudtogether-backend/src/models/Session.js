@@ -4,6 +4,8 @@ const SessionSchema = new mongoose.Schema({
   youtubeUrl: { type: String, required: true },
   adminName: { type: String, required: true },
   participants: [{ type: String }],
+  currentTime: { type: Number, default: 0 },
+  isPlaying: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
 });
 

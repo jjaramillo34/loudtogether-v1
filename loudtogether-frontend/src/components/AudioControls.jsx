@@ -1,7 +1,17 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
+import { PlayIcon, PauseIcon, Volume2Icon, VolumeXIcon } from "lucide-react";
+import { Slider } from "../components/ui/slider";
+import { Card, CardContent } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../components/ui/tooltip";
 
-const AudioControls = ({
+export default function AudioControls({
   audioPlayerRef,
   audioUrl,
   isAdmin,
@@ -9,8 +19,11 @@ const AudioControls = ({
   onPlayPause,
   isPlaying,
   currentTime,
-}) => {
-  const progressRef = useRef(null);
+}) {
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const [duration, setDuration] = useState(0);
+  //const progressRef = useRef(null);
 
   useEffect(() => {
     const audioElement = audioPlayerRef.current;
@@ -18,9 +31,17 @@ const AudioControls = ({
       const handleTimeUpdate = () => {
         onTimeUpdate(audioElement.currentTime);
       };
+      const handleLoadedMetadata = () => {
+        setDuration(audioElement.duration);
+      };
       audioElement.addEventListener("timeupdate", handleTimeUpdate);
+      audioElement.addEventListener("loadedmetadata", handleLoadedMetadata);
       return () => {
         audioElement.removeEventListener("timeupdate", handleTimeUpdate);
+        audioElement.removeEventListener(
+          "loadedmetadata",
+          handleLoadedMetadata
+        );
       };
     }
   }, [audioPlayerRef, onTimeUpdate]);
@@ -35,22 +56,39 @@ const AudioControls = ({
       } else if (!isPlaying && !audioPlayerRef.current.paused) {
         audioPlayerRef.current.pause();
       }
+      audioPlayerRef.current.volume = isMuted ? 0 : volume;
     }
-  }, [currentTime, isPlaying, audioPlayerRef]);
+  }, [currentTime, isPlaying, audioPlayerRef, volume, isMuted]);
 
   const handlePlayPause = () => {
-    if (isAdmin) {
-      onPlayPause(!isPlaying);
+    //if (isAdmin) {
+    onPlayPause(!isPlaying);
+    //}
+  };
+
+  const handleSeek = (value) => {
+    if (isAdmin && audioPlayerRef.current) {
+      const seekTime = (value[0] / 100) * duration;
+      audioPlayerRef.current.currentTime = seekTime;
+      onTimeUpdate(seekTime);
     }
   };
 
-  const handleSeek = (e) => {
-    if (isAdmin && audioPlayerRef.current) {
-      const seekTime =
-        (e.nativeEvent.offsetX / progressRef.current.offsetWidth) *
-        audioPlayerRef.current.duration;
-      audioPlayerRef.current.currentTime = seekTime;
-      onTimeUpdate(seekTime);
+  const handleVolumeChange = (value) => {
+    const newVolume = value[0] / 100;
+    setVolume(newVolume);
+    if (audioPlayerRef.current) {
+      audioPlayerRef.current.volume = newVolume;
+    }
+    if (newVolume > 0) {
+      setIsMuted(false);
+    }
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    if (audioPlayerRef.current) {
+      audioPlayerRef.current.muted = !isMuted;
     }
   };
 
@@ -61,36 +99,87 @@ const AudioControls = ({
   };
 
   return (
-    <div className="audio-controls">
-      <audio ref={audioPlayerRef} src={audioUrl} />
-      <button onClick={handlePlayPause} disabled={!isAdmin}>
-        {isPlaying ? "Pause" : "Play"}
-      </button>
-      <div
-        ref={progressRef}
-        className="progress-bar"
-        onClick={isAdmin ? handleSeek : undefined}
-        style={{ cursor: isAdmin ? "pointer" : "default" }}
-      >
-        <div
-          className="progress"
-          style={{
-            width: `${
-              (currentTime / (audioPlayerRef.current?.duration || 1)) * 100
-            }%`,
-          }}
+    <Card className="w-full max-w-md mx-auto overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800 shadow-xl">
+      <CardContent className="p-6">
+        <audio ref={audioPlayerRef} src={audioUrl} />
+        <div className="flex items-center justify-between mb-4">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={handlePlayPause}
+                  disabled={!isAdmin}
+                  className="w-12 h-12 rounded-full bg-white text-gray-900 hover:bg-gray-200 focus:ring-2 focus:ring-white focus:ring-opacity-50 transition-transform hover:scale-105"
+                  aria-label={isPlaying ? "Pause" : "Play"}
+                >
+                  {isPlaying ? (
+                    <PauseIcon className="w-6 h-6" />
+                  ) : (
+                    <PlayIcon className="w-6 h-6" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  {isAdmin
+                    ? isPlaying
+                      ? "Pause"
+                      : "Play"
+                    : "Only admin can control playback"}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <div className="text-white font-medium">
+            {formatTime(currentTime)} / {formatTime(duration)}
+          </div>
+        </div>
+        <Slider
+          value={[(currentTime / duration) * 100]}
+          onValueChange={handleSeek}
+          max={100}
+          step={1}
+          disabled={!isAdmin}
+          className="w-full mb-4"
         />
-      </div>
-      <span>
-        {formatTime(currentTime)} /{" "}
-        {formatTime(audioPlayerRef.current?.duration || 0)}
-      </span>
-    </div>
+        <div className="flex items-center space-x-4">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={toggleMute}
+                  className="p-2 rounded-full bg-gray-700 text-white hover:bg-gray-600 focus:ring-2 focus:ring-white focus:ring-opacity-50"
+                  aria-label={isMuted ? "Unmute" : "Mute"}
+                >
+                  {isMuted ? (
+                    <VolumeXIcon className="w-5 h-5" />
+                  ) : (
+                    <Volume2Icon className="w-5 h-5" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{isMuted ? "Unmute" : "Mute"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <Slider
+            value={[isMuted ? 0 : volume * 100]}
+            onValueChange={handleVolumeChange}
+            max={100}
+            step={1}
+            className="w-32"
+          />
+        </div>
+      </CardContent>
+    </Card>
   );
-};
+}
 
 AudioControls.propTypes = {
-  audioPlayerRef: PropTypes.object.isRequired,
+  audioPlayerRef: PropTypes.shape({
+    current: PropTypes.instanceOf(Element),
+  }),
   audioUrl: PropTypes.string.isRequired,
   isAdmin: PropTypes.bool.isRequired,
   onTimeUpdate: PropTypes.func.isRequired,
@@ -98,5 +187,3 @@ AudioControls.propTypes = {
   isPlaying: PropTypes.bool.isRequired,
   currentTime: PropTypes.number.isRequired,
 };
-
-export default AudioControls;

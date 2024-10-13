@@ -173,6 +173,20 @@ exports.syncAudio = async (req, res) => {
     const { sessionId } = req.params;
     const { currentTime, isPlaying } = req.body;
 
+    // Update the session in MongoDB
+    const session = await Session.findByIdAndUpdate(
+      sessionId,
+      { currentTime, isPlaying },
+      { new: true }
+    );
+
+    if (!session) {
+      return res.status(404).json({ message: "Session not found" });
+    }
+
+    // Update Redis cache
+    await req.redisClient.set(`session:${sessionId}`, JSON.stringify(session));
+
     // Notify all participants of the audio sync event
     req.pusher.trigger(`session-${sessionId}`, "audio-sync", {
       currentTime,
@@ -185,6 +199,41 @@ exports.syncAudio = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error syncing audio", error: error.message });
+  }
+};
+
+exports.getSyncStatus = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+
+    // Try to get session from Redis cache
+    const cachedSession = await req.redisClient.get(`session:${sessionId}`);
+    let session;
+
+    if (cachedSession) {
+      session = JSON.parse(cachedSession);
+    } else {
+      // If not in cache, get from MongoDB
+      session = await Session.findById(sessionId);
+      if (!session) {
+        return res.status(404).json({ message: "Session not found" });
+      }
+      // Cache the session data
+      await req.redisClient.set(
+        `session:${sessionId}`,
+        JSON.stringify(session)
+      );
+    }
+
+    res.json({
+      currentTime: session.currentTime || 0,
+      isPlaying: session.isPlaying || false,
+    });
+  } catch (error) {
+    console.error("Error in getSyncStatus:", error);
+    res
+      .status(500)
+      .json({ message: "Error fetching sync status", error: error.message });
   }
 };
 
