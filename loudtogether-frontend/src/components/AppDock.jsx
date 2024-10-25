@@ -5,14 +5,14 @@ const AppIcon = ({ Icon, gradient }) => (
   <div
     className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${gradient}`}
   >
-    <Icon size={26} color="white" strokeWidth={1.5} />
+    <Icon size={20} color="white" strokeWidth={1.5} />
   </div>
 );
 
 const AppDock = () => {
   return (
-    <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 w-[90%] max-w-md">
-      <div className="bg-white/20 backdrop-blur-xl rounded-3xl p-2 shadow-lg border border-white/30">
+    <div className="">
+      <div className="bg-white/20 backdrop-blur-xl rounded-3xl p-1 shadow-lg border border-white/30">
         <div className="flex justify-around items-center">
           <AppIcon
             Icon={Music}

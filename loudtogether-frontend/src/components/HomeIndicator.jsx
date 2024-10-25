@@ -5,8 +5,8 @@ import PropTypes from "prop-types";
 
 const HomeIndicator = ({
   className,
-  width = "w-32",
-  height = "h-1",
+  width = "w-28",
+  height = "h-[2px]",
   color = "bg-gray-300",
   animate = false,
   darkMode = false,
@@ -15,7 +15,7 @@ const HomeIndicator = ({
     width,
     height,
     color,
-    "rounded-full mx-auto mb-2 relative z-10",
+    "rounded-full mx-auto mt-2 relative z-10",
     darkMode ? "shadow-lg" : "shadow-md",
     className
   );
