@@ -1,10 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { PlayIcon, PauseIcon } from "lucide-react";
-<<<<<<< HEAD
 import ReactPlayer from "react-player";
-=======
->>>>>>> origin/main
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import {
@@ -22,11 +19,11 @@ export default function AudioControls({
   audioUrl,
   isAdmin,
   onPlayPause,
+  onTimeUpdate,
   isPlaying,
   currentTime,
 }) {
   const [duration, setDuration] = useState(0);
-<<<<<<< HEAD
   const [played, setPlayed] = useState(0);
   const playerRef = useRef(null);
 
@@ -76,33 +73,6 @@ export default function AudioControls({
         playerRef.current.seekTo(seekTime, "seconds");
       }
     }
-=======
-
-  useEffect(() => {
-    const audioElement = audioPlayerRef.current;
-    if (audioElement) {
-      const handleLoadedMetadata = () => {
-        setDuration(audioElement.duration);
-      };
-      audioElement.addEventListener("loadedmetadata", handleLoadedMetadata);
-      return () => {
-        audioElement.removeEventListener(
-          "loadedmetadata",
-          handleLoadedMetadata
-        );
-      };
-    }
-  }, [audioPlayerRef]);
-
-  useEffect(() => {
-    if (audioPlayerRef.current) {
-      audioPlayerRef.current.volume = 1; // Set default volume when the component mounts
-    }
-  }, [audioPlayerRef]);
-
-  const handlePlayPause = () => {
-    onPlayPause(!isPlaying);
->>>>>>> origin/main
   };
 
   const formatTime = (time) => {
@@ -162,7 +132,6 @@ export default function AudioControls({
             {formatTime(currentTime)} / {formatTime(duration)}
           </div>
         </div>
-<<<<<<< HEAD
         <Slider
           value={[played * 100]}
           onValueChange={handleSeek}
@@ -171,8 +140,6 @@ export default function AudioControls({
           disabled={!isAdmin}
           className="w-full mb-4"
         />
-=======
->>>>>>> origin/main
       </CardContent>
     </Card>
   );

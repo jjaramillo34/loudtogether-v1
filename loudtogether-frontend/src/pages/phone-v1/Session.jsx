@@ -27,7 +27,6 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
 } from "../../components/ui/breadcrumb";
-import AppDock from "../../components/AppDock";
 import { Home, Users } from "lucide-react";
 
 const Session = React.memo(() => {
@@ -281,7 +280,6 @@ const Session = React.memo(() => {
   }
 
   return (
-<<<<<<< HEAD
     <div className="max-w-7xl mx-auto text-gray-800 min-h-screen flex flex-col rounded-[2rem] overflow-hidden relative p-2 md:p-8">
       <Background />
 
@@ -340,101 +338,6 @@ const Session = React.memo(() => {
           onClose={() => setShowParticipants(false)}
         />
       )}
-=======
-    <div className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[14px] rounded-[2.5rem] h-[600px] w-[300px]">
-      <div className="h-[32px] w-[3px] bg-gray-800 dark:bg-gray-800 absolute -start-[17px] top-[72px] rounded-s-lg"></div>
-      <div className="h-[46px] w-[3px] bg-gray-800 dark:bg-gray-800 absolute -start-[17px] top-[124px] rounded-s-lg"></div>
-      <div className="h-[46px] w-[3px] bg-gray-800 dark:bg-gray-800 absolute -start-[17px] top-[178px] rounded-s-lg"></div>
-      <div className="h-[64px] w-[3px] bg-gray-800 dark:bg-gray-800 absolute -end-[17px] top-[142px] rounded-e-lg"></div>
-
-      <div className="rounded-[2rem] overflow-hidden w-[272px] h-[572px] bg-white dark:bg-gray-800">
-        <div className="relative h-full">
-          {/* Background component */}
-          <div>
-            <Background />
-          </div>
-
-          {/* StatusBar component */}
-          <StatusBar />
-
-          <motion.div
-            className="flex-grow flex flex-col px-8 pt-6 pb-4 relative z-10"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            {/* Breadcrumb */}
-            <div className="px-4 py-2 absolute">
-              <Breadcrumb>
-                <BreadcrumbItem>
-                  <BreadcrumbLink
-                    href="/"
-                    className="text-[#17D9A3] hover:text-[#15c795]"
-                  >
-                    <Home className="w-4 h-4 mr-2 inline" />
-                    Home
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbItem>
-                  <span className="mx-2 text-gray-400">|</span>
-                </BreadcrumbItem>
-                <BreadcrumbItem>
-                  <BreadcrumbLink className="font-semibold">
-                    Create Session
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-              </Breadcrumb>
-            </div>
-            <Card className="shadow-lg bg-white/90 backdrop-blur-sm w-full">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-2xl font-bold text-center text-[#17D9A3]">
-                  {isAdmin ? "Admin View" : "Participant View"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  <h2 className="text-lg font-semibold">{audioInfo.title}</h2>
-                  <p className="text-sm text-gray-500">
-                    Session ID: {sessionId}
-                  </p>
-                </div>
-                {isAdmin
-                  ? memoizedAdminView
-                  : showPreSession
-                  ? memoizedPreSessionScreen
-                  : memoizedParticipantView}
-                <Button
-                  onClick={() => setShowParticipants(true)}
-                  className="mt-4 w-full bg-[#17D9A3] text-white"
-                >
-                  <Users className="mr-2 h-4 w-4" /> View Participants
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* AppDock and HomeIndicator */}
-          <div className="absolute bottom-4 w-full">
-            <AppDock />
-            <div className="flex justify-center mt-2">
-              <HomeIndicator
-                width="w-32"
-                height="h-2"
-                color="bg-blue-500"
-                animate={true}
-                darkMode={true}
-              />
-            </div>
-            {showParticipants && (
-              <ParticipantsModal
-                participants={session.participants}
-                onClose={() => setShowParticipants(false)}
-              />
-            )}
-          </div>
-        </div>
-      </div>
->>>>>>> origin/main
     </div>
   );
 });
