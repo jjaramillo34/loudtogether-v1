@@ -5,9 +5,9 @@ import Home from "./pages/phone-v1/Home";
 import CreateSession from "./pages/phone-v1/CreateSession";
 import JoinSession from "./pages/phone-v1/JoinSession";
 import Session from "./pages/phone-v1/Session";
-import SplashScreen from "./components/common/SplashScreen";
 import Views from "./pages/Views";
 import { ToastContainer } from "react-toastify";
+import SplashScreen from "./components/SplashScreen";
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
