@@ -12,6 +12,22 @@ const AdminView = React.memo(
     handlePlayPause,
     isPlaying,
     currentTime,
+<<<<<<< HEAD
+  }) => (
+    <>
+      <SessionInfo session={session} audioInfo={audioInfo} />
+      <AudioControls
+        audioPlayerRef={audioPlayerRef}
+        audioUrl={audioInfo.cloudinaryUrl}
+        isAdmin={true}
+        onTimeUpdate={handleTimeUpdate}
+        onPlayPause={handlePlayPause}
+        isPlaying={isPlaying}
+        currentTime={currentTime}
+      />
+    </>
+  )
+=======
   }) => {
     const shareLink = `${window.location.origin}/session/${session.name}`;
 
@@ -53,6 +69,7 @@ const AdminView = React.memo(
       </div>
     );
   }
+>>>>>>> origin/main
 );
 
 AdminView.propTypes = {

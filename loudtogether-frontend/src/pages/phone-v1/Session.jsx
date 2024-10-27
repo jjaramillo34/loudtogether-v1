@@ -9,14 +9,12 @@ import { useParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import Pusher from "pusher-js";
 import { motion } from "framer-motion";
-import StatusBar from "../../components/StatusBar";
 import Background from "../../components/Background";
-import HomeIndicator from "../../components/HomeIndicator";
 import ParticipantsModal from "../../components/ParticipantsModal";
 import SplashScreen from "../../components/SplashScreen";
 import AdminView from "../../components/AdminView";
 import ParticipantView from "../../components/ParticipantView";
-import PreSessionScreen from "../../components/PreSessionScreen"; // New component
+import PreSessionScreen from "../../components/PreSessionScreen";
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -35,7 +33,6 @@ import { Home, Users } from "lucide-react";
 const Session = React.memo(() => {
   const { sessionId } = useParams();
   const location = useLocation();
-  //const navigate = useNavigate();
   const [session, setSession] = useState(null);
   const [audioInfo, setAudioInfo] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -284,6 +281,66 @@ const Session = React.memo(() => {
   }
 
   return (
+<<<<<<< HEAD
+    <div className="max-w-7xl mx-auto text-gray-800 min-h-screen flex flex-col rounded-[2rem] overflow-hidden relative p-2 md:p-8">
+      <Background />
+
+      <motion.div
+        className="flex-grow flex flex-col md:px-8 pt-6 pb-4 relative z-10"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Breadcrumb className="my-2 md:mb-6">
+          <BreadcrumbItem>
+            <BreadcrumbLink
+              href="/"
+              className="text-[#17D9A3] hover:text-[#15c795]"
+            >
+              <Home className="w-4 h-4 mr-2 inline" />
+              Home
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbItem>
+            <span className="mx-2 text-gray-400">|</span>
+          </BreadcrumbItem>
+          <BreadcrumbItem>
+            <BreadcrumbLink className="font-semibold">Session</BreadcrumbLink>
+          </BreadcrumbItem>
+        </Breadcrumb>
+
+        <Card className="shadow-lg bg-white/90 backdrop-blur-sm w-full">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-2xl md:text-3xl lg:text-4xl font-bold text-center text-[#17D9A3]">
+              {isAdmin ? "Admin View" : "Participant View"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold line-clamp-2">{audioInfo.title}</h2>
+              <p className="text-sm text-gray-500 line-clamp-1">Session ID: {sessionId}</p>
+            </div>
+            {isAdmin
+              ? memoizedAdminView
+              : showPreSession
+              ? memoizedPreSessionScreen
+              : memoizedParticipantView}
+            <Button
+              onClick={() => setShowParticipants(true)}
+              className="mt-4 w-full bg-[#17D9A3] text-white"
+            >
+              <Users className="mr-2 h-4 w-4" /> View Participants
+            </Button>
+          </CardContent>
+        </Card>
+      </motion.div>
+      {showParticipants && (
+        <ParticipantsModal
+          participants={session.participants}
+          onClose={() => setShowParticipants(false)}
+        />
+      )}
+=======
     <div className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[14px] rounded-[2.5rem] h-[600px] w-[300px]">
       <div className="h-[32px] w-[3px] bg-gray-800 dark:bg-gray-800 absolute -start-[17px] top-[72px] rounded-s-lg"></div>
       <div className="h-[46px] w-[3px] bg-gray-800 dark:bg-gray-800 absolute -start-[17px] top-[124px] rounded-s-lg"></div>
@@ -377,6 +434,7 @@ const Session = React.memo(() => {
           </div>
         </div>
       </div>
+>>>>>>> origin/main
     </div>
   );
 });

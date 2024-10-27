@@ -4,33 +4,32 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const Redis = require("redis");
 const Pusher = require("pusher");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const sessionRoutes = require("./routes/sessionRoutes");
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// MongoDB connection
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// Redis client
 const redisClient = Redis.createClient({
   url: process.env.REDIS_URL,
-  // If you have a password, uncomment the next line and add it to your .env file
   password: process.env.REDIS_PASSWORD,
 });
 
 redisClient.on("error", (err) => console.error("Redis Client Error", err));
 redisClient.connect().catch(console.error);
 
-// Pusher setup
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID,
   key: process.env.PUSHER_KEY,
@@ -39,14 +38,25 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
-// Make Redis and Pusher clients available to routes
 app.use((req, res, next) => {
   req.redisClient = redisClient;
   req.pusher = pusher;
   next();
 });
 
-// Routes
+io.on("connection", (socket) => {
+  console.log("A user connected");
+
+  socket.on("playPause", (state) => {
+    console.log("Play/Pause state changed:", state);
+    socket.broadcast.emit("playPause", state);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("A user disconnected");
+  });
+});
+
 app.use("/api/sessions", sessionRoutes);
 
 app.post("/test-detailed", (req, res) => {
@@ -63,6 +73,6 @@ app.post("/test-detailed", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-module.exports = app;
+module.exports = { app, io }; 
