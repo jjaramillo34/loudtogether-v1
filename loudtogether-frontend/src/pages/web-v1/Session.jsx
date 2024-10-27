@@ -9,15 +9,12 @@ import { useParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import Pusher from "pusher-js";
 import { Home, Users } from "lucide-react";
-import { motion } from "framer-motion";
-import StatusBar from "../../components/StatusBar";
-import Background from "../../components/Background";
 import HomeIndicator from "../../components/HomeIndicator";
 import ParticipantsModal from "../../components/ParticipantsModal";
 import SplashScreen from "../../components/SplashScreen";
 import AdminView from "../../components/AdminView";
 import ParticipantView from "../../components/ParticipantView";
-import PreSessionScreen from "../../components/PreSessionScreen"; // New component
+import PreSessionScreen from "../../components/PreSessionScreen";
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -283,68 +280,150 @@ const Session = React.memo(() => {
   }
 
   return (
-    <div className="max-w-md mx-auto bg-white text-gray-800 h-screen flex flex-col rounded-[3rem] overflow-hidden border-[14px] border-gray-200 relative">
-      <StatusBar />
-      <Background />
-
-      <motion.div
-        className="flex-grow flex flex-col px-8 pt-6 pb-4 relative z-10"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Breadcrumb className="mb-6">
-          <BreadcrumbItem>
-            <BreadcrumbLink
-              href="/"
-              className="text-[#17D9A3] hover:text-[#15c795]"
-            >
-              <Home className="w-4 h-4 mr-2 inline" />
-              Home
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbItem>
-            <span className="mx-2 text-gray-400">|</span>
-          </BreadcrumbItem>
-          <BreadcrumbItem>
-            <BreadcrumbLink className="font-semibold">Session</BreadcrumbLink>
-          </BreadcrumbItem>
-        </Breadcrumb>
-
-        <Card className="shadow-lg bg-white/90 backdrop-blur-sm w-full">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-2xl font-bold text-center text-[#17D9A3]">
-              {isAdmin ? "Admin View" : "Participant View"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold">{audioInfo.title}</h2>
-              <p className="text-sm text-gray-500">Session ID: {sessionId}</p>
+    <>
+      {/* Outer container for mobile and larger screens */}
+      <div className="relative mx-auto border-gray-800 bg-gray-800 border-[8px] rounded-t-xl max-w-[301px] md:max-w-[1024px] h-[489px] overflow-hidden">
+        {/* Scrollable content area inside the mockup */}
+        <div className="rounded-lg overflow-y-auto bg-white dark:bg-gray-800 h-[450px]">
+          <header className="bg-white shadow-md">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+              <div className="flex items-center">
+                <img
+                  src="/img/logo1.png"
+                  alt="LoudTogether Logo"
+                  className="w-8 h-8 mr-4"
+                />
+                <h1 className="text-3xl font-bold text-gray-800">
+                  LoudTogether
+                </h1>
+              </div>
+              <nav>
+                <ul className="flex space-x-6">
+                  <li>
+                    <a
+                      href="#features"
+                      className="text-gray-600 hover:text-gray-800"
+                    >
+                      Features
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#about"
+                      className="text-gray-600 hover:text-gray-800"
+                    >
+                      About
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#contact"
+                      className="text-gray-600 hover:text-gray-800"
+                    >
+                      Contact
+                    </a>
+                  </li>
+                </ul>
+              </nav>
             </div>
-            {isAdmin
-              ? memoizedAdminView
-              : showPreSession
-              ? memoizedPreSessionScreen
-              : memoizedParticipantView}
-            <Button
-              onClick={() => setShowParticipants(true)}
-              className="mt-4 w-full bg-[#17D9A3] text-white"
-            >
-              <Users className="mr-2 h-4 w-4" /> View Participants
-            </Button>
-          </CardContent>
-        </Card>
-      </motion.div>
+          </header>
 
-      <HomeIndicator />
-      {showParticipants && (
-        <ParticipantsModal
-          participants={session.participants}
-          onClose={() => setShowParticipants(false)}
-        />
-      )}
-    </div>
+          {/* Breadcrumb */}
+          <div className="px-4 py-2">
+            <Breadcrumb className="flex items-center">
+              <BreadcrumbItem>
+                <BreadcrumbLink
+                  href="/"
+                  className="text-[#17D9A3] hover:text-[#15c795] text-3xl flex items-center"
+                >
+                  <Home className="w-8 h-8 mr-2 inline" />
+                  Home
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbItem>
+                <span className="mx-2 text-gray-400">|</span>
+              </BreadcrumbItem>
+              <BreadcrumbItem>
+                <BreadcrumbLink className="font-semibold text-3xl">
+                  Create Session
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            </Breadcrumb>
+          </div>
+
+          {/* Form for creating session */}
+          <div className="flex-grow flex items-center justify-center px-4">
+            <Card className="shadow-lg bg-white/90 backdrop-blur-sm w-full">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-2xl font-bold text-center text-[#17D9A3]">
+                  {isAdmin ? "Admin View" : "Participant View"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4">
+                  <h2 className="text-lg font-semibold">{audioInfo.title}</h2>
+                  <p className="text-sm text-gray-500">
+                    Session ID: {sessionId}
+                  </p>
+                </div>
+                {isAdmin
+                  ? memoizedAdminView
+                  : showPreSession
+                  ? memoizedPreSessionScreen
+                  : memoizedParticipantView}
+                <Button
+                  onClick={() => setShowParticipants(true)}
+                  className="mt-4 w-full bg-[#17D9A3] text-white"
+                >
+                  <Users className="mr-2 h-4 w-4" /> View Participants
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* AppDock and HomeIndicator */}
+          <div className="absolute bottom-4 w-full">
+            <div className="flex justify-center mt-2">
+              <HomeIndicator
+                width="w-32"
+                height="h-2"
+                color="bg-blue-500"
+                animate={true}
+                darkMode={true}
+              />
+            </div>
+            {showParticipants && (
+              <ParticipantsModal
+                participants={session.participants}
+                onClose={() => setShowParticipants(false)}
+              />
+            )}
+          </div>
+
+          {/* Footer */}
+          <footer className="bg-[#17D9A3] text-white py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between items-center">
+                <p>&copy; 2024 LoudTogether. All rights reserved.</p>
+                <div className="flex space-x-4">
+                  <a href="#" className="hover:text-gray-300">
+                    Privacy Policy
+                  </a>
+                  <a href="#" className="hover:text-gray-300">
+                    Terms of Service
+                  </a>
+                </div>
+              </div>
+            </div>
+          </footer>
+        </div>
+      </div>
+
+      {/* Bottom bar */}
+      <div className="relative mx-auto bg-gray-900 dark:bg-gray-700 rounded-b-xl h-[50px] max-w-[351px] md:max-w-7xl">
+        <div className="absolute left-1/2 top-0 -translate-x-1/2 rounded-b-xl w-[56px] h-[5px] md:w-[196px] md:h-[8px] bg-gray-800"></div>
+      </div>
+    </>
   );
 });
 
