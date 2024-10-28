@@ -11,7 +11,7 @@ const sessionRoutes = require("./routes/sessionRoutes");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, { cors: { origin: "*" } });
 
 app.use(cors());
 app.use(express.json());
@@ -59,20 +59,7 @@ io.on("connection", (socket) => {
 
 app.use("/api/sessions", sessionRoutes);
 
-app.post("/test-detailed", (req, res) => {
-  console.log("Headers:", req.headers);
-  console.log("Body:", req.body);
-  console.log("Raw body:", req.rawBody);
-  console.log("Content-Type:", req.get("Content-Type"));
-  res.json({
-    headers: req.headers,
-    body: req.body,
-    rawBody: req.rawBody,
-    contentType: req.get("Content-Type"),
-  });
-});
-
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-module.exports = { app, io }; 
+module.exports = { app, io };
