@@ -315,8 +315,12 @@ const Session = React.memo(() => {
           </CardHeader>
           <CardContent>
             <div className="mb-4">
-              <h2 className="text-lg font-semibold line-clamp-2">{audioInfo.title}</h2>
-              <p className="text-sm text-gray-500 line-clamp-1">Session ID: {sessionId}</p>
+              <h2 className="text-lg font-semibold line-clamp-2">
+                {audioInfo.title}
+              </h2>
+              <p className="text-sm text-gray-500 line-clamp-1">
+                Session ID: {sessionId}
+              </p>
             </div>
             {isAdmin
               ? memoizedAdminView
@@ -325,7 +329,7 @@ const Session = React.memo(() => {
               : memoizedParticipantView}
             <Button
               onClick={() => setShowParticipants(true)}
-              className="mt-4 w-full bg-[#17D9A3] text-white"
+              className="mt-4 w-full bg-[#17D9A3] hover:bg-[#1db88c] text-white"
             >
               <Users className="mr-2 h-4 w-4" /> View Participants
             </Button>
