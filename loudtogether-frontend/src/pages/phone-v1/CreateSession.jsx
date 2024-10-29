@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Home, Youtube, User } from "lucide-react";
+import { Home, Youtube } from "lucide-react";
 import { motion } from "framer-motion";
 import Background from "../../components/Background";
 import { Input } from "../../components/ui/input";
@@ -17,16 +17,22 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
 } from "../../components/ui/breadcrumb";
+import { faker } from "@faker-js/faker";
 
 function CreateSession() {
   const [youtubeUrl, setYoutubeUrl] = useState("");
-  const [adminName, setAdminName] = useState("");
   const navigate = useNavigate();
 
   const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
+  const generateRandomName = () => {
+    return faker.name.fullName();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const adminName = generateRandomName();
+
     try {
       const response = await axios.post(`${SERVER_URL}/api/sessions`, {
         youtubeUrl,
@@ -101,29 +107,6 @@ function CreateSession() {
                       placeholder="https://www.youtube.com/watch?v=..."
                     />
                     <Youtube
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-                      size={20}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label
-                    htmlFor="adminName"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Your Name (Admin)
-                  </label>
-                  <div className="relative">
-                    <Input
-                      type="text"
-                      id="adminName"
-                      value={adminName}
-                      onChange={(e) => setAdminName(e.target.value)}
-                      required
-                      className="pl-12 pr-4 rounded-full border-gray-300 shadow-sm focus:ring-2 focus:ring-[#17D9A3]"
-                      placeholder="Enter your name"
-                    />
-                    <User
                       className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
                       size={20}
                     />
