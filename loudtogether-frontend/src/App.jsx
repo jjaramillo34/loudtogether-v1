@@ -49,6 +49,7 @@ function App() {
           <Route path="create" element={<CreateSession />} />
           <Route path="join" element={<JoinSession />} />
           <Route path="session/:sessionId" element={<Session />} />
+          <Route path="session/:sessionName" element={<Session />} />
         </Route>
       </Routes>
     </Router>

@@ -3,8 +3,13 @@ const Session = require("../models/Session");
 const ytdl = require("@distube/ytdl-core");
 const { google } = require("googleapis");
 const cloudinary = require("../config/cloudinary");
-const streamifier = require("streamifier");
 const ffmpeg = require("fluent-ffmpeg");
+const {
+  uniqueNamesGenerator,
+  adjectives,
+  colors,
+  animals,
+} = require("unique-names-generator");
 
 // Initialize YouTube API client
 const youtube = google.youtube({
@@ -37,14 +42,6 @@ async function getVideoDetails(videoId) {
   };
 }
 
-const {
-  uniqueNamesGenerator,
-  Config,
-  adjectives,
-  colors,
-  animals,
-} = require("unique-names-generator");
-
 const customConfig = {
   dictionaries: [adjectives, colors, animals],
   separator: "",
@@ -52,17 +49,32 @@ const customConfig = {
   style: "capital",
 };
 
+function generateSessionName(title) {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}
+
 exports.createSession = async (req, res) => {
   try {
     const { youtubeUrl, adminName } = req.body;
 
-    // Generate a friendly admin name if not provided
+    const videoId = extractVideoId(youtubeUrl);
+    const videoDetails = await getVideoDetails(videoId);
+
+    const sessionName = generateSessionName(videoDetails.title);
+
     const friendlyAdminName = adminName || uniqueNamesGenerator(customConfig);
 
-    const session = new Session({ youtubeUrl, adminName: friendlyAdminName });
+    const session = new Session({
+      youtubeUrl,
+      adminName: friendlyAdminName,
+      sessionName,
+    });
     await session.save();
 
-    // Cache session data in Redis
     await req.redisClient.set(
       `session:${session._id}`,
       JSON.stringify(session)
@@ -70,6 +82,7 @@ exports.createSession = async (req, res) => {
 
     res.status(201).json({
       sessionId: session._id,
+      sessionName,
       adminName: friendlyAdminName,
     });
   } catch (error) {
@@ -110,6 +123,37 @@ exports.getSession = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error fetching session", error: error.message });
+  }
+};
+
+exports.getSessionByName = async (req, res) => {
+  try {
+    const { sessionName } = req.params;
+
+    if (!sessionName) {
+      return res.status(400).json({ message: "Session name is required" });
+    }
+
+    const redisKey = `session-name:${sessionName}`;
+    const cachedSession = await req.redisClient.get(redisKey);
+    if (cachedSession) {
+      return res.json(JSON.parse(cachedSession));
+    }
+
+    const session = await Session.findOne({ sessionName });
+    if (!session) {
+      return res.status(404).json({ message: "Session not found" });
+    }
+
+    await req.redisClient.set(redisKey, JSON.stringify(session));
+
+    res.json(session);
+  } catch (error) {
+    console.error("Error in getSessionByName:", error);
+    res.status(500).json({
+      message: "Error fetching session by name",
+      error: error.message,
+    });
   }
 };
 

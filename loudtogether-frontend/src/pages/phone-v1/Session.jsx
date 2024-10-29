@@ -30,7 +30,7 @@ import {
 import { Home, Users } from "lucide-react";
 
 const Session = React.memo(() => {
-  const { sessionId } = useParams();
+  const { sessionId, sessionName } = useParams();
   const location = useLocation();
   const [session, setSession] = useState(null);
   const [audioInfo, setAudioInfo] = useState(null);
@@ -71,10 +71,19 @@ const Session = React.memo(() => {
     const fetchSessionData = async () => {
       try {
         setIsLoading(true);
-        const sessionResponse = await axios.get(
+        // First try fetching by sessionId
+        let sessionResponse = await axios.get(
           `${SERVER_URL}/api/sessions/${sessionId}`
         );
         setSession(sessionResponse.data);
+
+        // Check if session exists, otherwise fetch by name
+        if (!sessionResponse.data) {
+          sessionResponse = await axios.get(
+            `${SERVER_URL}/api/sessions/${sessionName}`
+          );
+          setSession(sessionResponse.data);
+        }
         setIsAdmin(
           sessionResponse.data.adminName === location.state?.participantName
         );
@@ -92,7 +101,7 @@ const Session = React.memo(() => {
     };
 
     fetchSessionData();
-  }, [sessionId, location.state, SERVER_URL]);
+  }, [sessionId, location.state, SERVER_URL, sessionName]);
 
   useEffect(() => {
     const pusher = new Pusher(VITE_KEY, { cluster: VITE_CLUSTER });

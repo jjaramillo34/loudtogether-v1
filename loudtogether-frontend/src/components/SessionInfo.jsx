@@ -10,10 +10,11 @@ const truncate = (str, num = 30) => {
 };
 
 const SessionInfo = ({ session, audioInfo }) => {
-  const { sessionId } = useParams();
+  const { sessionName } = useParams();
   const shareableLink = `${
     import.meta.env.VITE_DOMAIN_NAME
-  }/session/${sessionId}`;
+    }/session/${sessionName}`;
+   console.log("Session Name:", sessionName);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareableLink);

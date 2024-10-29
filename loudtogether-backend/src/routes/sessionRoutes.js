@@ -13,6 +13,7 @@ router.get("/audio-info", sessionController.getAudioInfo);
 
 router.post("/", sessionController.createSession);
 router.get("/:sessionId", sessionController.getSession);
+router.get("/:sessionName", sessionController.getSessionByName);
 router.post("/:sessionId/join", sessionController.joinSession);
 router.get("/:sessionId/sync", sessionController.getSyncStatus); // Add this line
 router.post("/:sessionId/sync", sessionController.syncAudio);
