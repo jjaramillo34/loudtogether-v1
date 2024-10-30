@@ -27,6 +27,7 @@ const Page = () => {
         <Route path="/phone-v1/create" element={<CreateSession />} />
         <Route path="/phone-v1/join" element={<JoinSession />} />
         <Route path="/phone-v1/session/:sessionId" element={<Session />} />
+        <Route path="/phone-v1/session/:sessionName" element={<Session />} />
       </Routes>
     </Router>
   );

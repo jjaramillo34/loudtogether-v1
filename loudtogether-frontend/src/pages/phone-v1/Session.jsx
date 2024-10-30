@@ -71,19 +71,12 @@ const Session = React.memo(() => {
     const fetchSessionData = async () => {
       try {
         setIsLoading(true);
-        // First try fetching by sessionId
-        let sessionResponse = await axios.get(
-          `${SERVER_URL}/api/sessions/${sessionId}`
+        const sessionResponse = await axios.get(
+          `${SERVER_URL}/api/sessions/${
+            sessionId ? `/${sessionId}` : `/${sessionName}`
+          }`
         );
         setSession(sessionResponse.data);
-
-        // Check if session exists, otherwise fetch by name
-        if (!sessionResponse.data) {
-          sessionResponse = await axios.get(
-            `${SERVER_URL}/api/sessions/${sessionName}`
-          );
-          setSession(sessionResponse.data);
-        }
         setIsAdmin(
           sessionResponse.data.adminName === location.state?.participantName
         );
@@ -101,7 +94,7 @@ const Session = React.memo(() => {
     };
 
     fetchSessionData();
-  }, [sessionId, location.state, SERVER_URL, sessionName]);
+  }, [sessionId, sessionName, location.state, SERVER_URL]);
 
   useEffect(() => {
     const pusher = new Pusher(VITE_KEY, { cluster: VITE_CLUSTER });

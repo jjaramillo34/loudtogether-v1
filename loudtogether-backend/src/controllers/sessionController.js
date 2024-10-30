@@ -49,29 +49,29 @@ const customConfig = {
   style: "capital",
 };
 
-function generateSessionName(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, "")
-    .trim()
-    .replace(/\s+/g, "-");
-}
-
 exports.createSession = async (req, res) => {
   try {
     const { youtubeUrl, adminName } = req.body;
 
     const videoId = extractVideoId(youtubeUrl);
-    const videoDetails = await getVideoDetails(videoId);
+    if (!videoId) {
+      return res.status(400).json({ message: "Invalid YouTube URL" });
+    }
 
-    const sessionName = generateSessionName(videoDetails.title);
+    const videoDetails = await getVideoDetails(videoId);
+    const { title } = videoDetails;
+
+    const shortSessionName = title.replace(/\s+/g, "").substring(0, 10);
+    const uniqueSessionName = `${shortSessionName}-${uniqueNamesGenerator(
+      customConfig
+    )}`;
 
     const friendlyAdminName = adminName || uniqueNamesGenerator(customConfig);
 
     const session = new Session({
       youtubeUrl,
+      sessionName: uniqueSessionName,
       adminName: friendlyAdminName,
-      sessionName,
     });
     await session.save();
 
@@ -82,7 +82,7 @@ exports.createSession = async (req, res) => {
 
     res.status(201).json({
       sessionId: session._id,
-      sessionName,
+      sessionName: uniqueSessionName,
       adminName: friendlyAdminName,
     });
   } catch (error) {
@@ -130,30 +130,20 @@ exports.getSessionByName = async (req, res) => {
   try {
     const { sessionName } = req.params;
 
-    if (!sessionName) {
-      return res.status(400).json({ message: "Session name is required" });
-    }
-
-    const redisKey = `session-name:${sessionName}`;
-    const cachedSession = await req.redisClient.get(redisKey);
-    if (cachedSession) {
-      return res.json(JSON.parse(cachedSession));
-    }
-
     const session = await Session.findOne({ sessionName });
     if (!session) {
       return res.status(404).json({ message: "Session not found" });
     }
 
-    await req.redisClient.set(redisKey, JSON.stringify(session));
-
     res.json(session);
   } catch (error) {
     console.error("Error in getSessionByName:", error);
-    res.status(500).json({
-      message: "Error fetching session by name",
-      error: error.message,
-    });
+    res
+      .status(500)
+      .json({
+        message: "Error fetching session by name",
+        error: error.message,
+      });
   }
 };
 
