@@ -9,9 +9,9 @@ const truncate = (str, num = 30) => {
 };
 
 const SessionInfo = ({ session, audioInfo }) => {
-  const shareableLink = `${
-    import.meta.env.VITE_DOMAIN_NAME
-  }/session-name/${session.sessionName}`;
+  const shareableLink = `${import.meta.env.VITE_DOMAIN_NAME}/session/${
+    session.sessionName
+  }`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareableLink);

@@ -9,7 +9,7 @@ export const getSession = (sessionId) =>
   axios.get(`${API_BASE_URL}/sessions/${sessionId}`);
 
 export const getSessionByName = (sessionName) =>
-  axios.get(`${API_BASE_URL}/sessions/session-name/${sessionName}`);
+  axios.get(`${API_BASE_URL}/sessions/session/${sessionName}`);
 
 export const joinSession = (sessionId, participantName) =>
   axios.post(`${API_BASE_URL}/sessions/${sessionId}/join`, { participantName });
