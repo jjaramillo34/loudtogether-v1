@@ -26,7 +26,7 @@ function CreateSession() {
   const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
   const generateRandomName = () => {
-    return faker.name.fullName();
+    return faker.person.fullName();
   };
 
   const handleSubmit = async (e) => {

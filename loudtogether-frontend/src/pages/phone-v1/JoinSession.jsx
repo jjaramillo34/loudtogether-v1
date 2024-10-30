@@ -26,7 +26,7 @@ const JoinSession = React.memo(() => {
     (e) => {
       e.preventDefault();
       const cleanSessionId = sessionId.split("/").pop();
-      const randomName = faker.name.fullName();
+      const randomName = faker.person.fullName();
       navigate(`/${cleanSessionId}`, {
         state: { participantName: randomName },
       });
