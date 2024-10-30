@@ -38,7 +38,7 @@ function CreateSession() {
         youtubeUrl,
         adminName,
       });
-      navigate(`/session/${response.data.sessionId}`, {
+      navigate(`/${response.data.sessionId}`, {
         state: { participantName: adminName },
       });
     } catch (error) {

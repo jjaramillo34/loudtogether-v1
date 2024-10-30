@@ -48,8 +48,11 @@ function App() {
           <Route index element={React.createElement(getHomeComponent())} />
           <Route path="create" element={<CreateSession />} />
           <Route path="join" element={<JoinSession />} />
-          <Route path="session/:sessionId" element={<Session />} />
-          <Route path="session/:sessionName" element={<Session />} />
+          <Route path="/:sessionId" element={<Session />} />
+          <Route
+            path="/session-name/:sessionName"
+            element={<Session />}
+          />
         </Route>
       </Routes>
     </Router>

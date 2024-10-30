@@ -67,34 +67,37 @@ const Session = React.memo(() => {
     }
   }, []);
 
-  useEffect(() => {
-    const fetchSessionData = async () => {
-      try {
-        setIsLoading(true);
-        const sessionResponse = await axios.get(
-          `${SERVER_URL}/api/sessions/${
-            sessionId ? `/${sessionId}` : `/${sessionName}`
-          }`
-        );
-        setSession(sessionResponse.data);
-        setIsAdmin(
-          sessionResponse.data.adminName === location.state?.participantName
-        );
+useEffect(() => {
+  const fetchSessionData = async () => {
+    try {
+      setIsLoading(true);
 
-        const audioInfoResponse = await axios.get(
-          `${SERVER_URL}/api/sessions/audio-info?youtubeUrl=${sessionResponse.data.youtubeUrl}`
-        );
-        setAudioInfo(audioInfoResponse.data);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error fetching session data:", error);
-        setError("Failed to load session data. Please try again.");
-        setIsLoading(false);
-      }
-    };
+      const endpoint = sessionId
+        ? `${SERVER_URL}/api/sessions/${sessionId}`
+        : `${SERVER_URL}/api/sessions/session-name/${sessionName}`;
 
-    fetchSessionData();
-  }, [sessionId, sessionName, location.state, SERVER_URL]);
+      const sessionResponse = await axios.get(endpoint);
+      setSession(sessionResponse.data);
+
+      setIsAdmin(
+        sessionResponse.data.adminName === location.state?.participantName
+      );
+
+      const audioInfoResponse = await axios.get(
+        `${SERVER_URL}/api/sessions/audio-info?youtubeUrl=${sessionResponse.data.youtubeUrl}`
+      );
+      setAudioInfo(audioInfoResponse.data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching session data:", error);
+      setError("Failed to load session data. Please try again.");
+      setIsLoading(false);
+    }
+  };
+
+  fetchSessionData();
+}, [sessionId, sessionName, location.state, SERVER_URL]);
+
 
   useEffect(() => {
     const pusher = new Pusher(VITE_KEY, { cluster: VITE_CLUSTER });

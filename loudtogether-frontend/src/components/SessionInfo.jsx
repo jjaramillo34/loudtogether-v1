@@ -1,6 +1,5 @@
 import PropTypes from "prop-types";
 import { Link, User, Users } from "lucide-react";
-import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -10,10 +9,9 @@ const truncate = (str, num = 30) => {
 };
 
 const SessionInfo = ({ session, audioInfo }) => {
-  const { sessionId } = useParams();
   const shareableLink = `${
     import.meta.env.VITE_DOMAIN_NAME
-  }/session/${sessionId}`;
+  }/session-name/${session.sessionName}`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareableLink);
@@ -108,7 +106,7 @@ const SessionInfo = ({ session, audioInfo }) => {
 
 SessionInfo.propTypes = {
   session: PropTypes.shape({
-    id: PropTypes.string.isRequired,
+    sessionName: PropTypes.string.isRequired,
     youtubeUrl: PropTypes.string.isRequired,
     adminName: PropTypes.string.isRequired,
     participants: PropTypes.arrayOf(PropTypes.string).isRequired,
