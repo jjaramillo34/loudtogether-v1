@@ -1,6 +1,9 @@
 import PropTypes from "prop-types";
 import { Link, User, Users } from "lucide-react";
 import { toast } from "react-toastify";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import { faker } from "@faker-js/faker";
 import "react-toastify/dist/ReactToastify.css";
 
 const truncate = (str, num = 30) => {
@@ -9,13 +12,31 @@ const truncate = (str, num = 30) => {
 };
 
 const SessionInfo = ({ session, audioInfo }) => {
+  const { sessionId } = useParams();
   const shareableLink = `${import.meta.env.VITE_DOMAIN_NAME}/session/${
     session.sessionName
   }`;
 
-  const copyToClipboard = () => {
+  // Generate a random participant name
+  const participantName = faker.person.fullName();
+
+  const copyToClipboardAndJoin = async () => {
     navigator.clipboard.writeText(shareableLink);
     toast.success("Link copied to clipboard!");
+
+    try {
+      // Make a POST request to join the session
+      const response = await axios.post(
+        `${import.meta.env.VITE_SERVER_URL}/api/sessions/${
+          sessionId || session._id
+        }/join`,
+        { participantName }
+      );
+      console.log("Joined session:", response.data);
+    } catch (error) {
+      console.error("Error joining session:", error);
+      toast.error("Error joining session");
+    }
   };
 
   return (
@@ -90,7 +111,7 @@ const SessionInfo = ({ session, audioInfo }) => {
                   {truncate(shareableLink)}
                 </a>
                 <button
-                  onClick={copyToClipboard}
+                  onClick={copyToClipboardAndJoin}
                   className="ml-2 text-xs text-white bg-[#17D9A3] px-2 py-1 rounded"
                 >
                   Copy
@@ -106,6 +127,7 @@ const SessionInfo = ({ session, audioInfo }) => {
 
 SessionInfo.propTypes = {
   session: PropTypes.shape({
+    _id: PropTypes.string,
     sessionName: PropTypes.string.isRequired,
     youtubeUrl: PropTypes.string.isRequired,
     adminName: PropTypes.string.isRequired,
@@ -115,9 +137,8 @@ SessionInfo.propTypes = {
     title: PropTypes.string,
     thumbnailUrl: PropTypes.string,
     duration: PropTypes.number,
+    _id: PropTypes.string,
   }).isRequired,
-  isParticipant: PropTypes.bool.isRequired,
-  onJoin: PropTypes.func.isRequired,
 };
 
 export default SessionInfo;
