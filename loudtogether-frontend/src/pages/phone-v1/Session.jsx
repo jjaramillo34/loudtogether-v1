@@ -322,9 +322,17 @@ const Session = React.memo(() => {
               <h2 className="text-lg font-semibold line-clamp-2">
                 {audioInfo.title}
               </h2>
-              <p className="text-sm text-gray-500 line-clamp-1">
-                Session ID: {sessionId}
-              </p>
+              {sessionId ? (
+                <p className="text-sm text-gray-500 line-clamp-1">
+                  Session ID:
+                  <span className="text-blue-500">{sessionId}</span>
+                </p>
+              ) : (
+                <p className="text-sm text-gray-500 line-clamp-1">
+                  Session Name:{" "}
+                  <span className="text-blue-500">{sessionName}</span>
+                </p>
+              )}
             </div>
             {isAdmin
               ? memoizedAdminView
