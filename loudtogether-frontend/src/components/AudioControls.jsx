@@ -28,9 +28,12 @@ export default function AudioControls({
   const playerRef = useRef(null);
 
   useEffect(() => {
-    socket.on("playPause", (state) => {
+    socket.on("playPause", ({ isPlaying, time }) => {
       if (!isAdmin) {
-        onPlayPause(state);
+        onPlayPause(isPlaying);
+        if (playerRef.current) {
+          playerRef.current.seekTo(time, "seconds");
+        }
       }
     });
 
@@ -55,7 +58,12 @@ export default function AudioControls({
   const handlePlayPause = () => {
     if (isAdmin) {
       const newPlayingState = !isPlaying;
-      socket.emit("playPause", newPlayingState);
+      const currentTime = playerRef.current.getCurrentTime();
+
+      socket.emit("playPause", {
+        isPlaying: newPlayingState,
+        time: currentTime,
+      });
       onPlayPause(newPlayingState);
 
       if (newPlayingState && playerRef.current) {
