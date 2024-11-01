@@ -14,7 +14,11 @@ const AdminView = React.memo(
     currentTime,
   }) => (
     <>
-      <SessionInfo session={session} audioInfo={audioInfo} />
+      <SessionInfo
+        session={session}
+        audioInfo={audioInfo}
+        key={session.participants.length}
+      />
       <AudioControls
         audioPlayerRef={audioPlayerRef}
         audioUrl={audioInfo.cloudinaryUrl}
@@ -36,6 +40,7 @@ AdminView.propTypes = {
   handlePlayPause: PropTypes.func.isRequired,
   isPlaying: PropTypes.bool.isRequired,
   currentTime: PropTypes.number.isRequired,
+  refetchSessionData: PropTypes.func.isRequired,
 };
 
 AdminView.displayName = "AdminView";

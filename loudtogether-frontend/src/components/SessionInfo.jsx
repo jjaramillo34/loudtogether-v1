@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import { faker } from "@faker-js/faker";
 import "react-toastify/dist/ReactToastify.css";
+import { useEffect, useState } from "react";
 
 const truncate = (str, num = 30) => {
   if (str.length <= num) return str;
@@ -13,22 +14,43 @@ const truncate = (str, num = 30) => {
 
 const SessionInfo = ({ session, audioInfo }) => {
   const { sessionId } = useParams();
+  const [sessionData, setSessionData] = useState(session);
   const shareableLink = `${import.meta.env.VITE_DOMAIN_NAME}/session/${
     session.sessionName
   }`;
 
-  // Generate a random participant name
   const participantName = faker.person.fullName();
+
+  useEffect(() => {
+    const fetchSessionData = async () => {
+      try {
+        const endpoint = sessionId
+          ? `${import.meta.env.VITE_SERVER_URL}/api/sessions/${sessionId}`
+          : `${import.meta.env.VITE_SERVER_URL}/api/sessions/session/${
+              sessionData.sessionName
+            }`;
+
+        const response = await axios.get(endpoint);
+
+        if (response.status === 200) {
+          setSessionData(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching session data:", error);
+        toast.error("Error fetching session data");
+      }
+    };
+    fetchSessionData();
+  }, [sessionData.sessionName, sessionId]);
 
   const copyToClipboardAndJoin = async () => {
     navigator.clipboard.writeText(shareableLink);
     toast.success("Link copied to clipboard!");
 
     try {
-      // Make a POST request to join the session
       const response = await axios.post(
         `${import.meta.env.VITE_SERVER_URL}/api/sessions/${
-          sessionId || session._id
+          sessionId || sessionData._id
         }/join`,
         { participantName }
       );
@@ -91,7 +113,7 @@ const SessionInfo = ({ session, audioInfo }) => {
                 Participants
               </span>
               <span className="text-sm text-gray-700">
-                {session.participants.length}
+                {sessionData.participants?.length ?? 0}
               </span>
             </div>
           </div>

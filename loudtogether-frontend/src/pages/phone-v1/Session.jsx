@@ -354,6 +354,7 @@ const Session = React.memo(() => {
           onClose={() => setShowParticipants(false)}
         />
       )}
+      
     </div>
   );
 });
