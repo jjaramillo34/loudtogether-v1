@@ -88,6 +88,9 @@ const Session = React.memo(() => {
         );
         setAudioInfo(audioInfoResponse.data);
         setIsLoading(false);
+        if (!isAdmin) {
+          setShowPreSession(true);
+        }
       } catch (error) {
         console.error("Error fetching session data:", error);
         setError("Failed to load session data. Please try again.");
@@ -96,7 +99,7 @@ const Session = React.memo(() => {
     };
 
     fetchSessionData();
-  }, [sessionId, sessionName, location.state, SERVER_URL]);
+  }, [sessionId, sessionName, location.state, SERVER_URL, isAdmin]);
 
   useEffect(() => {
     const pusher = new Pusher(VITE_KEY, { cluster: VITE_CLUSTER });
@@ -125,7 +128,7 @@ const Session = React.memo(() => {
     return () => {
       pusher.unsubscribe(`session-${sessionId}`);
     };
-  }, [sessionId, VITE_KEY, VITE_CLUSTER, syncAudioState]);
+  }, [sessionId, VITE_KEY, VITE_CLUSTER, syncAudioState, isAdmin]);
 
   useEffect(() => {
     const joinSession = async () => {
@@ -137,14 +140,10 @@ const Session = React.memo(() => {
           const syncResponse = await axios.get(
             `${SERVER_URL}/api/sessions/${sessionId}/sync`
           );
-          if (!isAdmin) {
-            setShowPreSession(true);
-          } else {
-            syncAudioState(
-              syncResponse.data.currentTime,
-              syncResponse.data.isPlaying
-            );
-          }
+          syncAudioState(
+            syncResponse.data.currentTime,
+            syncResponse.data.isPlaying
+          );
         } catch (error) {
           console.error("Error joining session:", error);
           setError("Failed to join session. Please try again.");
@@ -354,7 +353,6 @@ const Session = React.memo(() => {
           onClose={() => setShowParticipants(false)}
         />
       )}
-      
     </div>
   );
 });

@@ -17,7 +17,7 @@ const PreSessionScreen = ({ session, audioInfo, onStartListening }) => {
       </p>
       <Button
         onClick={onStartListening}
-        className="w-full bg-[#17D9A3] text-white"
+        className="w-full bg-[#17D9A3] hover:bg-[#1db88c] text-white"
       >
         Start Listening
       </Button>
