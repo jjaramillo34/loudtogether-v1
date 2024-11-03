@@ -91,7 +91,7 @@ const SessionInfo = ({ session, audioInfo }) => {
                 URL
               </span>
               <span className="text-sm text-gray-700 line-clamp-1">
-                {truncate(session.youtubeUrl)}
+                {truncate(sessionData.youtubeUrl)}
               </span>
             </div>
           </div>
@@ -102,7 +102,7 @@ const SessionInfo = ({ session, audioInfo }) => {
                 Admin
               </span>
               <span className="text-sm text-gray-700 line-clamp-1">
-                {session.adminName}
+                {sessionData.adminName}
               </span>
             </div>
           </div>
