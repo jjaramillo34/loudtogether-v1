@@ -37,8 +37,15 @@ export default function AudioControls({
       }
     });
 
+    socket.on("sync", ({ time }) => {
+      if (!isAdmin && playerRef.current) {
+        playerRef.current.seekTo(time, "seconds");
+      }
+    });
+
     return () => {
       socket.off("playPause");
+      socket.off("sync");
     };
   }, [isAdmin, onPlayPause]);
 
@@ -88,6 +95,17 @@ export default function AudioControls({
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
+
+  useEffect(() => {
+    if (isAdmin) {
+      const interval = setInterval(() => {
+        if (playerRef.current) {
+          socket.emit("sync", { time: playerRef.current.getCurrentTime() });
+        }
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [isAdmin]);
 
   return (
     <Card className="w-full max-w-7xl mx-auto overflow-hidden border border-gray-200 shadow-lg rounded-lg bg-white">

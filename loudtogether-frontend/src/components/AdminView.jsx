@@ -7,7 +7,6 @@ const AdminView = React.memo(
   ({
     session,
     audioInfo,
-    audioPlayerRef,
     handleTimeUpdate,
     handlePlayPause,
     isPlaying,
@@ -20,7 +19,6 @@ const AdminView = React.memo(
         key={session.participants.length}
       />
       <AudioControls
-        audioPlayerRef={audioPlayerRef}
         audioUrl={audioInfo.cloudinaryUrl}
         isAdmin={true}
         onTimeUpdate={handleTimeUpdate}
@@ -35,7 +33,6 @@ const AdminView = React.memo(
 AdminView.propTypes = {
   session: PropTypes.object.isRequired,
   audioInfo: PropTypes.object.isRequired,
-  audioPlayerRef: PropTypes.object.isRequired,
   handleTimeUpdate: PropTypes.func.isRequired,
   handlePlayPause: PropTypes.func.isRequired,
   isPlaying: PropTypes.bool.isRequired,

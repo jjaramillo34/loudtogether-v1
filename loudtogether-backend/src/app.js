@@ -44,12 +44,26 @@ app.use((req, res, next) => {
   next();
 });
 
+let isPlaying = false;
+let currentTime = 0;
+const SYNC_INTERVAL = 3000;
+
+setInterval(() => {
+  if (isPlaying) {
+    currentTime += SYNC_INTERVAL / 1000;
+    io.emit("sync", { time: currentTime, isPlaying });
+  }
+}, SYNC_INTERVAL);
+
 io.on("connection", (socket) => {
   console.log("A user connected");
 
+  socket.emit("sync", { time: currentTime, isPlaying });
+
   socket.on("playPause", (state) => {
-    console.log("Play/Pause state changed:", state);
-    socket.broadcast.emit("playPause", state);
+    isPlaying = state.isPlaying;
+    currentTime = state.time;
+    io.emit("playPause", { isPlaying, time: currentTime });
   });
 
   socket.on("disconnect", () => {
