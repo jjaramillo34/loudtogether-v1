@@ -46,7 +46,7 @@ app.use((req, res, next) => {
 
 let isPlaying = false;
 let currentTime = 0;
-const SYNC_INTERVAL = 3000;
+const SYNC_INTERVAL = 1000;
 
 setInterval(() => {
   if (isPlaying) {

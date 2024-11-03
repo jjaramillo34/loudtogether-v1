@@ -15,6 +15,9 @@ const truncate = (str, num = 30) => {
 const SessionInfo = ({ session, audioInfo }) => {
   const { sessionId } = useParams();
   const [sessionData, setSessionData] = useState(session);
+  const [participantsCount, setParticipantsCount] = useState(
+    sessionData.participants?.length || 0
+  );
   const shareableLink = `${import.meta.env.VITE_DOMAIN_NAME}/session/${
     session.sessionName
   }`;
@@ -34,6 +37,7 @@ const SessionInfo = ({ session, audioInfo }) => {
 
         if (response.status === 200) {
           setSessionData(response.data);
+          setParticipantsCount(response.data.participants?.length || 0);
         }
       } catch (error) {
         console.error("Error fetching session data:", error);
@@ -55,6 +59,7 @@ const SessionInfo = ({ session, audioInfo }) => {
         { participantName }
       );
       console.log("Joined session:", response.data);
+      setParticipantsCount((prevCount) => prevCount + 1);
     } catch (error) {
       console.error("Error joining session:", error);
       toast.error("Error joining session");
@@ -112,9 +117,7 @@ const SessionInfo = ({ session, audioInfo }) => {
               <span className="text-xs font-semibold text-gray-400 block">
                 Participants
               </span>
-              <span className="text-sm text-gray-700">
-                {sessionData.participants?.length ?? 0}
-              </span>
+              <span className="text-sm text-gray-700">{participantsCount}</span>
             </div>
           </div>
           <div className="flex items-center bg-gray-50 rounded-xl p-3">

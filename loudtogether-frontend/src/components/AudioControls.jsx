@@ -37,9 +37,10 @@ export default function AudioControls({
       }
     });
 
-    socket.on("sync", ({ time }) => {
+    socket.on("sync", ({ time, isPlaying: serverPlaying }) => {
       if (!isAdmin && playerRef.current) {
         playerRef.current.seekTo(time, "seconds");
+        onPlayPause(serverPlaying); // Synchronize playing state
       }
     });
 
@@ -100,12 +101,13 @@ export default function AudioControls({
     if (isAdmin) {
       const interval = setInterval(() => {
         if (playerRef.current) {
-          socket.emit("sync", { time: playerRef.current.getCurrentTime() });
+          const currentPlayingTime = playerRef.current.getCurrentTime();
+          socket.emit("sync", { time: currentPlayingTime, isPlaying });
         }
       }, 5000);
       return () => clearInterval(interval);
     }
-  }, [isAdmin]);
+  }, [isAdmin, isPlaying]);
 
   return (
     <Card className="w-full max-w-7xl mx-auto overflow-hidden border border-gray-200 shadow-lg rounded-lg bg-white">
