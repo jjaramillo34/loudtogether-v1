@@ -16,22 +16,22 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
 } from "../../components/ui/breadcrumb";
-import { faker } from "@faker-js/faker"; 
 
 const JoinSession = React.memo(() => {
-  const [sessionId, setSessionId] = useState("");
+  const [inputValue, setInputValue] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = useCallback(
     (e) => {
       e.preventDefault();
-      const cleanSessionId = sessionId.split("/").pop();
-      const randomName = faker.person.fullName();
-      navigate(`/${cleanSessionId}`, {
-        state: { participantName: randomName },
-      });
+      const isSessionId = /^[0-9a-fA-F]{24}$/.test(inputValue);
+      const sessionUrl = isSessionId
+        ? `/${inputValue}`
+        : `/session/${encodeURIComponent(inputValue)}`;
+
+      navigate(sessionUrl);
     },
-    [sessionId, navigate]
+    [inputValue, navigate]
   );
 
   return (
@@ -75,20 +75,20 @@ const JoinSession = React.memo(() => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <label
-                    htmlFor="sessionId"
+                    htmlFor="inputValue"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    Session ID
+                    Session ID or Name
                   </label>
                   <div className="relative">
                     <Input
                       type="text"
-                      id="sessionId"
-                      value={sessionId}
-                      onChange={(e) => setSessionId(e.target.value)}
+                      id="inputValue"
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
                       required
                       className="pl-12 pr-4 rounded-full border-gray-300 shadow-sm focus:ring-2 focus:ring-[#17D9A3]"
-                      placeholder="Enter session ID"
+                      placeholder="Enter session ID or name"
                     />
                     <Hash
                       className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"

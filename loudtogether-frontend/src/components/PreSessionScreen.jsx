@@ -1,8 +1,28 @@
-//import React from "react";
 import PropTypes from "prop-types";
 import { Button } from "./ui/button";
+import { toast } from "react-toastify";
+import axios from "axios";
+import { faker } from "@faker-js/faker";
 
 const PreSessionScreen = ({ session, audioInfo, onStartListening }) => {
+  const participantName = faker.person.fullName();
+
+  const handleStartListening = async () => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_SERVER_URL}/api/sessions/${session._id}/join`,
+        { participantName }
+      );
+
+      console.log("Joined session:", response.data);
+      toast.success("Successfully joined the session!");
+      onStartListening();
+    } catch (error) {
+      console.error("Error joining session:", error);
+      toast.error("Error joining session");
+    }
+  };
+
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Welcome to the Session!</h2>
@@ -16,7 +36,7 @@ const PreSessionScreen = ({ session, audioInfo, onStartListening }) => {
         with the group.
       </p>
       <Button
-        onClick={onStartListening}
+        onClick={handleStartListening}
         className="w-full bg-[#17D9A3] hover:bg-[#1db88c] text-white"
       >
         Start Listening

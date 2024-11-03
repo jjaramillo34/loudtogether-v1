@@ -3,7 +3,6 @@ import { Link, User, Users } from "lucide-react";
 import { toast } from "react-toastify";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import { faker } from "@faker-js/faker";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect, useState } from "react";
 
@@ -21,8 +20,6 @@ const SessionInfo = ({ session, audioInfo }) => {
   const shareableLink = `${import.meta.env.VITE_DOMAIN_NAME}/session/${
     session.sessionName
   }`;
-
-  const participantName = faker.person.fullName();
 
   useEffect(() => {
     const fetchSessionData = async () => {
@@ -47,23 +44,9 @@ const SessionInfo = ({ session, audioInfo }) => {
     fetchSessionData();
   }, [sessionData.sessionName, sessionId]);
 
-  const copyToClipboardAndJoin = async () => {
+  const copyToClipboard = () => {
     navigator.clipboard.writeText(shareableLink);
     toast.success("Link copied to clipboard!");
-
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/api/sessions/${
-          sessionId || sessionData._id
-        }/join`,
-        { participantName }
-      );
-      console.log("Joined session:", response.data);
-      setParticipantsCount((prevCount) => prevCount + 1);
-    } catch (error) {
-      console.error("Error joining session:", error);
-      toast.error("Error joining session");
-    }
   };
 
   return (
@@ -136,7 +119,7 @@ const SessionInfo = ({ session, audioInfo }) => {
                   {truncate(shareableLink)}
                 </a>
                 <button
-                  onClick={copyToClipboardAndJoin}
+                  onClick={copyToClipboard}
                   className="ml-2 text-xs text-white bg-[#17D9A3] px-2 py-1 rounded"
                 >
                   Copy
