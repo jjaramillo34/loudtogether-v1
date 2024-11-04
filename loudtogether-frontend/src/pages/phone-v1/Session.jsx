@@ -202,7 +202,33 @@ const Session = React.memo(() => {
     [isAdmin, sessionId, SERVER_URL]
   );
 
-  //const handleNavigateBack = useCallback(() => navigate(-1), [navigate]);
+  const handleBeforeUnload = useCallback(
+    (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+
+      if (location.state && location.state.participantName) {
+        const leaveSessionData = {
+          participantName: location.state.participantName,
+        };
+
+        const leaveSessionEndpoint = `${SERVER_URL}/api/sessions/${sessionId}/leave`;
+        navigator.sendBeacon(
+          leaveSessionEndpoint,
+          JSON.stringify(leaveSessionData)
+        );
+      }
+    },
+    [sessionId, SERVER_URL, location.state]
+  );
+
+  useEffect(() => {
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [handleBeforeUnload]);
 
   const memoizedAdminView = useMemo(
     () =>

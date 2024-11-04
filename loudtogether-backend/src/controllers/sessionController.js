@@ -354,64 +354,71 @@ exports.leaveSession = async (req, res) => {
     const { sessionId } = req.params;
     const { participantName } = req.body;
 
-    const session = await Session.findByIdAndUpdate(
-      sessionId,
-      { $pull: { participants: participantName } },
-      { new: true }
-    );
+    const session = await Session.findById(sessionId);
 
     if (!session) {
       return res.status(404).json({ message: "Session not found" });
     }
 
-    const redisKey = `session:${sessionId}`;
+    const isAdminLeaving = session.adminName === participantName;
 
-    if (session.participants.length > 0) {
-      await req.redisClient.set(redisKey, JSON.stringify(session));
-    } else {
-      await req.redisClient.del(redisKey);
-    }
-
-    if (req.pusher) {
-      req.pusher.trigger(`session-${sessionId}`, "participant-left", {
-        participantName,
-      });
-    }
-
-    if (session.participants.length === 0) {
+    if (isAdminLeaving) {
       await Session.findByIdAndDelete(sessionId);
-      await req.redisClient.del(redisKey);
-      return res.json({
-        message: "Participant removed and empty session deleted",
-      });
-    }
-
-    if (
-      participantName === session.adminName &&
-      session.participants.length > 0
-    ) {
-      const newAdmin = session.participants[0];
-      session.adminName = newAdmin;
-      await session.save();
-
-      await req.redisClient.set(redisKey, JSON.stringify(session));
+      await req.redisClient.del(`session:${sessionId}`);
 
       if (req.pusher) {
-        req.pusher.trigger(`session-${sessionId}`, "admin-changed", {
-          newAdminName: newAdmin,
+        req.pusher.trigger(`session-${sessionId}`, "session-deleted", {
+          message: "Session deleted because the admin left",
         });
       }
+
+      return res.json({
+        message: "Admin left, session deleted",
+      });
     }
 
+    session.participants = session.participants.filter(
+      (participant) => participant !== participantName
+    );
+
+    if (session.participants.length > 0) {
+      const randomIndex = Math.floor(
+        Math.random() * session.participants.length
+      );
+      const randomParticipant = session.participants[randomIndex];
+
+      session.participants.splice(randomIndex, 1);
+
+      await session.save();
+      await req.redisClient.set(
+        `session:${sessionId}`,
+        JSON.stringify(session)
+      );
+
+      if (req.pusher) {
+        req.pusher.trigger(`session-${sessionId}`, "participant-left", {
+          participantName: randomParticipant,
+        });
+      }
+
+      return res.json({
+        message: "Participant removed successfully",
+        updatedSession: session,
+      });
+    }
+
+    await Session.findByIdAndDelete(sessionId);
+    await req.redisClient.del(`session:${sessionId}`);
+
     res.json({
-      message: "Left session successfully",
-      updatedSession: session,
+      message: "Last participant removed, session deleted",
     });
   } catch (error) {
     console.error("Error in leaveSession:", error);
-    res
-      .status(500)
-      .json({ message: "Error leaving session", error: error.message });
+    res.status(500).json({
+      message: "Error leaving session",
+      error: error.message,
+    });
   }
 };
 
