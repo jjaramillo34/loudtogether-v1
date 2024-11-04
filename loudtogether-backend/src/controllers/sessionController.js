@@ -354,7 +354,6 @@ exports.leaveSession = async (req, res) => {
     const { sessionId } = req.params;
     const { participantName } = req.body;
 
-    // Update the session in MongoDB
     const session = await Session.findByIdAndUpdate(
       sessionId,
       { $pull: { participants: participantName } },
@@ -365,47 +364,43 @@ exports.leaveSession = async (req, res) => {
       return res.status(404).json({ message: "Session not found" });
     }
 
-    // Update Redis cache
     const redisKey = `session:${sessionId}`;
+
     if (session.participants.length > 0) {
       await req.redisClient.set(redisKey, JSON.stringify(session));
     } else {
       await req.redisClient.del(redisKey);
     }
 
-    // Notify all participants of the user departure
-    req.pusher.trigger(`session-${sessionId}`, "participant-left", {
-      participantName,
-    });
+    if (req.pusher) {
+      req.pusher.trigger(`session-${sessionId}`, "participant-left", {
+        participantName,
+      });
+    }
 
-    // Check if the session is now empty
     if (session.participants.length === 0) {
-      // Delete the session from MongoDB
       await Session.findByIdAndDelete(sessionId);
-      // Ensure it's removed from Redis (redundant but safe)
       await req.redisClient.del(redisKey);
       return res.json({
         message: "Participant removed and empty session deleted",
       });
     }
 
-    // Check if the removed participant was the admin
     if (
       participantName === session.adminName &&
       session.participants.length > 0
     ) {
-      // Assign a new admin (e.g., the first remaining participant)
       const newAdmin = session.participants[0];
       session.adminName = newAdmin;
       await session.save();
 
-      // Update Redis cache with the new session data
       await req.redisClient.set(redisKey, JSON.stringify(session));
 
-      // Notify participants of the admin change
-      req.pusher.trigger(`session-${sessionId}`, "admin-changed", {
-        newAdminName: newAdmin,
-      });
+      if (req.pusher) {
+        req.pusher.trigger(`session-${sessionId}`, "admin-changed", {
+          newAdminName: newAdmin,
+        });
+      }
     }
 
     res.json({
