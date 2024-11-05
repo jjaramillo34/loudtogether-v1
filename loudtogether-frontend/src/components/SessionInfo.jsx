@@ -41,7 +41,9 @@ const SessionInfo = ({ session, audioInfo }) => {
         toast.error("Error fetching session data");
       }
     };
-    fetchSessionData();
+
+    const intervalId = setInterval(fetchSessionData, 3000);
+    return () => clearInterval(intervalId);
   }, [sessionData.sessionName, sessionId]);
 
   const copyToClipboard = () => {

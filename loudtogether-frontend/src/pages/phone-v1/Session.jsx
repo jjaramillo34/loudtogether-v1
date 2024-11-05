@@ -5,7 +5,7 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Pusher from "pusher-js";
 import { motion } from "framer-motion";
@@ -28,10 +28,12 @@ import {
   BreadcrumbLink,
 } from "../../components/ui/breadcrumb";
 import { Home, Users } from "lucide-react";
+import { toast } from "react-toastify";
 
 const Session = React.memo(() => {
   const { sessionId, sessionName } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const [session, setSession] = useState(null);
   const [audioInfo, setAudioInfo] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -202,34 +204,6 @@ const Session = React.memo(() => {
     [isAdmin, sessionId, SERVER_URL]
   );
 
-  const handleBeforeUnload = useCallback(
-    (event) => {
-      event.preventDefault();
-      event.returnValue = "";
-
-      if (location.state && location.state.participantName) {
-        const leaveSessionData = {
-          participantName: location.state.participantName,
-        };
-
-        const leaveSessionEndpoint = `${SERVER_URL}/api/sessions/${sessionId}/leave`;
-        navigator.sendBeacon(
-          leaveSessionEndpoint,
-          JSON.stringify(leaveSessionData)
-        );
-      }
-    },
-    [sessionId, SERVER_URL, location.state]
-  );
-
-  useEffect(() => {
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [handleBeforeUnload]);
-
   const memoizedAdminView = useMemo(
     () =>
       session && audioInfo ? (
@@ -301,11 +275,8 @@ const Session = React.memo(() => {
   }
 
   if (!session || !audioInfo) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p>No session data available. Please try again.</p>
-      </div>
-    );
+    toast.error("Error joining session");
+    navigate("/");
   }
 
   return (

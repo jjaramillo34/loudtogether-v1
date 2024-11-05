@@ -355,40 +355,28 @@ exports.leaveSession = async (req, res) => {
     const { participantName } = req.body;
 
     const session = await Session.findById(sessionId);
-
     if (!session) {
       return res.status(404).json({ message: "Session not found" });
     }
 
-    const isAdminLeaving = session.adminName === participantName;
-
-    if (isAdminLeaving) {
-      await Session.findByIdAndDelete(sessionId);
-      await req.redisClient.del(`session:${sessionId}`);
-
-      if (req.pusher) {
-        req.pusher.trigger(`session-${sessionId}`, "session-deleted", {
-          message: "Session deleted because the admin left",
-        });
+    let participantIndex = -1;
+    for (let i = session.participants.length - 1; i >= 0; i--) {
+      if (session.participants[i] === participantName) {
+        participantIndex = i;
+        break;
       }
-
-      return res.json({
-        message: "Admin left, session deleted",
-      });
     }
 
-    session.participants = session.participants.filter(
-      (participant) => participant !== participantName
-    );
-
-    if (session.participants.length > 0) {
+    if (participantIndex !== -1) {
+      session.participants.splice(participantIndex, 1);
+    } else if (session.participants.length > 0) {
       const randomIndex = Math.floor(
         Math.random() * session.participants.length
       );
-      const randomParticipant = session.participants[randomIndex];
-
       session.participants.splice(randomIndex, 1);
+    }
 
+    if (session.participants.length > 0) {
       await session.save();
       await req.redisClient.set(
         `session:${sessionId}`,
@@ -397,7 +385,7 @@ exports.leaveSession = async (req, res) => {
 
       if (req.pusher) {
         req.pusher.trigger(`session-${sessionId}`, "participant-left", {
-          participantName: randomParticipant,
+          participantName,
         });
       }
 
@@ -410,12 +398,18 @@ exports.leaveSession = async (req, res) => {
     await Session.findByIdAndDelete(sessionId);
     await req.redisClient.del(`session:${sessionId}`);
 
-    res.json({
+    if (req.pusher) {
+      req.pusher.trigger(`session-${sessionId}`, "session-deleted", {
+        message: "Session deleted because the last participant left",
+      });
+    }
+
+    return res.json({
       message: "Last participant removed, session deleted",
     });
   } catch (error) {
     console.error("Error in leaveSession:", error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "Error leaving session",
       error: error.message,
     });
